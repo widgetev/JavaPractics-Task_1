@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Account.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Task_1</a> &gt; <a href="index.source.html" class="el_package">org.example</a> &gt; <span class="el_source">Account.java</span></div><h1>Account.java</h1><pre class="source lang-java linenums">package org.example;
+
+import lombok.Getter;
+import lombok.NonNull;
+
+import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
+public class Account implements Cloneable{
+
+
+<span class="fc" id="L12">    @Getter @NonNull</span>
+    private String clientName;
+    private HashMap&lt;Currency, Long&gt; money;
+<span class="fc" id="L15">    private Deque&lt;Executable&gt; undoSteps = new ArrayDeque&lt;&gt;();</span>
+
+    public Account undo(){
+<span class="fc bfc" id="L18" title="All 2 branches covered.">        if(undoSteps.isEmpty()) throw new NothingToUndo(&quot;Nothing for undo&quot;);</span>
+<span class="fc" id="L19">        undoSteps.pop().exec();</span>
+<span class="fc" id="L20">        return this;</span>
+    }
+    public void updateMoney(Currency cur, Long value) {
+<span class="fc bfc" id="L23" title="All 4 branches covered.">        if(value == null || value &lt; 0) throw new IllegalArgumentException(&quot;Сумма должны быть больше 0&quot;);</span>
+
+        /*undo steps*/
+        //если уже есть то фиксируте откат к тек значению и сохраняю новое
+<span class="fc" id="L27">        this.money.computeIfPresent( cur, (k,v) -&gt;{</span>
+            //делаю сохранение для отката
+<span class="fc" id="L29">            Long oldVal = this.money.get(cur);</span>
+<span class="fc" id="L30">            this.undoSteps.push(()-&gt;this.money.put(cur, oldVal));</span>
+<span class="fc" id="L31">            return value;</span>
+        });
+        //Если нету то запонить удаление и новое значение сохранить
+<span class="fc" id="L34">        this.money.computeIfAbsent(cur, (k) -&gt; {</span>
+            //надо что-то запомнить для удаления
+<span class="fc" id="L36">            this.undoSteps.push(() -&gt; this.money.remove(cur));</span>
+<span class="fc" id="L37">            return value;</span>
+        });
+<span class="fc" id="L39">    }</span>
+
+    public void setClientName(String clientName) {
+<span class="fc" id="L42">        checkClientName(clientName);</span>
+<span class="fc" id="L43">        String oldName = this.clientName;</span>
+<span class="fc" id="L44">        this.undoSteps.push(() -&gt; {this.clientName = oldName;});</span>
+<span class="fc" id="L45">        this.clientName = clientName;</span>
+<span class="fc" id="L46">    }</span>
+
+    public HashMap&lt;Currency, Long&gt; getMoney() {
+<span class="fc" id="L49">        return new HashMap&lt;Currency, Long&gt;(money);</span>
+    }
+
+    private Deque&lt;Executable&gt; getUndoSteps() {
+<span class="fc" id="L53">        return new ArrayDeque&lt;&gt;(this.undoSteps);</span>
+    }
+
+<span class="fc bfc" id="L56" title="All 2 branches covered.">    private void checkClientName(@NonNull String clientName) {</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if(StringUtils.isBlank(clientName)) {</span>
+<span class="fc" id="L58">            throw new IllegalArgumentException(&quot;Field clientName can't be blank/empty/null&quot;);</span>
+        }
+<span class="fc" id="L60">    }</span>
+<span class="fc" id="L61">    public Account(String clientName) {</span>
+<span class="fc" id="L62">        this.checkClientName(clientName);</span>
+<span class="fc" id="L63">        this.clientName = clientName;</span>
+<span class="fc" id="L64">        this.money = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L66">    }</span>
+
+    public Loadable save() {
+<span class="fc" id="L69">        return new Snapshot();</span>
+    }
+
+    @Override
+    //только в тестировании сохранялки используется, но путсть будет
+    public Account clone() {
+<span class="fc" id="L75">        Account acc = new Account(this.clientName);</span>
+<span class="fc" id="L76">        acc.money = this.getMoney();</span>
+<span class="fc" id="L77">        acc.undoSteps =this.getUndoSteps();</span>
+<span class="fc" id="L78">        return acc;</span>
+    }
+
+    private class Snapshot implements Loadable{
+
+        private String clientName;
+        private HashMap&lt;Currency,Long&gt; money;
+
+<span class="fc" id="L86">        public Snapshot (){</span>
+<span class="fc" id="L87">            this.clientName = Account.this.clientName;</span>
+<span class="fc" id="L88">            this.money = new HashMap&lt;&gt;(Account.this.money);</span>
+<span class="fc" id="L89">        }</span>
+
+
+        @Override
+        public void load() {
+<span class="fc" id="L94">            Account.this.clientName = this.clientName;</span>
+<span class="fc" id="L95">            Account.this.money = new HashMap&lt;&gt;(this.money);</span>
+<span class="fc" id="L96">        }</span>
+    }
+    @Override
+    public String toString() {
+<span class="nc" id="L100">        String retval =  &quot;Account{&quot; +</span>
+                &quot;clientName='&quot; + clientName + '\''
+                + &quot;, money :  \n&quot;;
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (Currency key: money.keySet()) {</span>
+<span class="nc" id="L104">            retval += &quot;\t&quot; + key.displayName + &quot; = &quot; + money.get(key).toString() + &quot;\n&quot;;</span>
+<span class="nc" id="L105">        }</span>
+
+<span class="nc" id="L107">        retval += &quot;\n }&quot;;</span>
+<span class="nc" id="L108">        return retval;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

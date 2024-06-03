@@ -1,6 +1,8 @@
 package org.example;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -15,7 +17,7 @@ class AccountTest {
     @MethodSource("org.example.NameSource#blankNames")
     void setBlankClientName(String clientName) {
         Account acc = new Account("Vasya");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> acc.setClientName(clientName));
+        assertThrows(IllegalArgumentException.class, () -> acc.setClientName(clientName));
     }
 
     @Test
@@ -23,7 +25,7 @@ class AccountTest {
     void setNullClientName() {
         String str = null;
         Account acc = new Account("Vasya");
-        Assertions.assertThrows(NullPointerException.class, () -> acc.setClientName(str));
+        assertThrows(NullPointerException.class, () -> acc.setClientName(str));
     }
 
     @DisplayName("Установка имени владельца :")
@@ -38,14 +40,14 @@ class AccountTest {
     @ParameterizedTest(name = "-> \"{0}\"")
     @MethodSource("org.example.NameSource#blankNames")
     void newAccoutnBlankClientName(String clientName) {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new Account(clientName));
+        assertThrows(IllegalArgumentException.class, () -> new Account(clientName));
     }
 
     @Test
     @DisplayName("Новый счет с NULL в имени владельца")
     void newAccoutnNullClientName() {
         String str = null;
-        Assertions.assertThrows(NullPointerException.class, () -> new Account(str));
+        assertThrows(NullPointerException.class, () -> new Account(str));
     }
 
     @DisplayName("Новый счет с корректным именем владельца :")
@@ -59,7 +61,7 @@ class AccountTest {
     @DisplayName("Получить имя клиента")
     void getClientName() {
         Account acc = new Account("Vasya");
-        Assertions.assertEquals(acc.getClientName(), "Vasya");
+        assertEquals(acc.getClientName(), "Vasya");
     }
 
 
@@ -68,14 +70,14 @@ class AccountTest {
     void updateMoneyCorrectName(String cur) {
         Account acc = new Account("Vasya");
         acc.updateMoney(Currency.valueOf(cur),99L);
-        Assertions.assertTrue(acc.getMoney().containsKey(valueOf(cur)));
+        assertTrue(acc.getMoney().containsKey(valueOf(cur)));
     }
 
     @ParameterizedTest(name = "updateMoney (BAD Names) -> \"{0}\"")
     @MethodSource("org.example.CurSource#curBadNames")
     void updateMoneyBadName(String cur) {
         Account acc = new Account("Vasya");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> acc.updateMoney(Currency.valueOf(cur),1L));
+        assertThrows(IllegalArgumentException.class, () -> acc.updateMoney(Currency.valueOf(cur),1L));
     }
 
     @ParameterizedTest(name = "updateMoney (Values) -> \"{0}\"")
@@ -83,21 +85,21 @@ class AccountTest {
     void updateMoneyCorrecValues(Long value) {
         Account acc = new Account("Vasya");
         acc.updateMoney(Currency.valueOf("RUB"), value);
-        Assertions.assertEquals(value, acc.getMoney().get(Currency.valueOf("RUB")));
+        assertEquals(value, acc.getMoney().get(Currency.valueOf("RUB")));
     }
 
     @ParameterizedTest(name = "updateMoney (BAD Values) -> \"{0}\"")
     @MethodSource("org.example.CurSource#curBadValues")
     void updateMoneyBadValues(String value) {
         Account acc = new Account("Vasya");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> acc.updateMoney(Currency.valueOf("RUB"), Long.valueOf(value)));
+        assertThrows(IllegalArgumentException.class, () -> acc.updateMoney(Currency.valueOf("RUB"), Long.valueOf(value)));
     }
 
     @Test
     @DisplayName("updateMoney (NULL Values)")
     void updateMoneyNULLValues() {
         Account acc = new Account("Vasya");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> acc.updateMoney(Currency.valueOf("RUB"), null));
+        assertThrows(IllegalArgumentException.class, () -> acc.updateMoney(Currency.valueOf("RUB"), null));
     }
 
     @Test
@@ -106,9 +108,9 @@ class AccountTest {
         String dName = acc.getClientName();
         acc.setClientName("Fake Name");
 
-        Assertions.assertNotEquals(dName, acc.getClientName());
-        Assertions.assertEquals(dName,acc.undo().getClientName());
-        Assertions.assertThrows(NothingToUndo.class, acc::undo);
+        assertNotEquals(dName, acc.getClientName());
+        assertEquals(dName,acc.undo().getClientName());
+        assertThrows(NothingToUndo.class, acc::undo);
     }
 
     @Test
@@ -124,34 +126,65 @@ class AccountTest {
         acc.updateMoney(RUB,110L);
         acc.updateMoney(EUR,220L);
         acc.updateMoney(USD,330L);
-        Assertions.assertNotEquals(rub, acc.getMoney().get(RUB));
-        Assertions.assertNotEquals(eur, acc.getMoney().get(EUR));
-        Assertions.assertNotEquals(usd, acc.getMoney().get(USD));
+        assertNotEquals(rub, acc.getMoney().get(RUB));
+        assertNotEquals(eur, acc.getMoney().get(EUR));
+        assertNotEquals(usd, acc.getMoney().get(USD));
 
         //откат денег :)
-        Assertions.assertDoesNotThrow(acc::undo);
-        Assertions.assertNotEquals(rub, acc.getMoney().get(RUB));
-        Assertions.assertNotEquals(eur, acc.getMoney().get(EUR));
-        Assertions.assertEquals(usd, acc.getMoney().get(USD));
+        assertDoesNotThrow(acc::undo);
+        assertNotEquals(rub, acc.getMoney().get(RUB));
+        assertNotEquals(eur, acc.getMoney().get(EUR));
+        assertEquals(usd, acc.getMoney().get(USD));
 
-        Assertions.assertDoesNotThrow(acc::undo);
-        Assertions.assertDoesNotThrow(acc::undo);
+        assertDoesNotThrow(acc::undo);
+        assertDoesNotThrow(acc::undo);
 
         //удаление денег
-        Assertions.assertDoesNotThrow(acc::undo);
-        Assertions.assertEquals(rub, acc.getMoney().get(RUB));
-        Assertions.assertEquals(eur, acc.getMoney().get(EUR));
-        Assertions.assertNull(acc.getMoney().get(USD));
+        assertDoesNotThrow(acc::undo);
+        assertEquals(rub, acc.getMoney().get(RUB));
+        assertEquals(eur, acc.getMoney().get(EUR));
+        assertNull(acc.getMoney().get(USD));
 
-        Assertions.assertDoesNotThrow(acc::undo);
-        Assertions.assertDoesNotThrow(acc::undo);
-        Assertions.assertNull(acc.getMoney().get(EUR));
-        Assertions.assertNull(acc.getMoney().get(RUB));
+        assertDoesNotThrow(acc::undo);
+        assertDoesNotThrow(acc::undo);
+        assertNull(acc.getMoney().get(EUR));
+        assertNull(acc.getMoney().get(RUB));
 
         ///Больше нечего откатывать
-        Assertions.assertThrows(NothingToUndo.class, acc::undo);
+        assertThrows(NothingToUndo.class, acc::undo);
+    }
+    @Test
+    void cloneAccount() {
+        Account acc = new Account("Default Name");
+        acc.updateMoney(RUB,100L);
+        acc.updateMoney(USD, 10L);
+        Account accClone = (Account) acc.clone();
+        assertEquals(acc.getClientName(), accClone.getClientName());
+
+        assertEquals(acc.getMoney().size(), accClone.getMoney().size());
+        for (Currency cur : acc.getMoney().keySet()) {
+            assertEquals(acc.getMoney().get(cur), accClone.getMoney().get(cur));
+        }
     }
 
+    @Test
+    void save() {
+        Account acc = new Account("Default Name");
+        acc.updateMoney(RUB,100L);
+        acc.updateMoney(USD, 10L);
+
+        Loadable save_1 = acc.save();
+
+        Account accClone = acc.clone();
+        acc.undo();
+        acc.setClientName("Vasya-Petya");
+        acc.updateMoney(EUR, 98523L);
+        save_1.load();
+
+        assertTrue(EqualsBuilder.reflectionEquals(acc,accClone,"undoSteps"));
+        assertFalse(EqualsBuilder.reflectionEquals(acc, accClone));
+
+    }
 }
 
 class NameSource {
