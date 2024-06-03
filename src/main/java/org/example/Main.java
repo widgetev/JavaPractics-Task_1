@@ -23,13 +23,20 @@ public class Main {
 
         // put a new value which is not mapped
         // before in map
-        System.out.println("put new key. Result : " + map.putIfAbsent("d", 77633));
+        System.out.println("put new key. Result : " + map.computeIfPresent( "d", (k,v) ->{
+            //делаю сохранение для отката
+            int i = true ? 77633 : 0;
+            return i;
+        }));
 
         System.out.println("New HashMap:\n " + map);
 
         // try to put a new value with existing key
         // before in map
-        System.out.println("put exists key. Result : " + map.putIfAbsent("d", 55555));
+        System.out.println("put exists key. Result : " + map.computeIfAbsent("d", (k) -> {
+            //надо что-то запомнить для удаления
+            return 4444;
+        }));
 
         // print newly mapped map
         System.out.println("Unchanged HashMap:\n " + map);

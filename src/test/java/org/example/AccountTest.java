@@ -6,6 +6,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 
+import static org.example.Currency.*;
+
 
 class AccountTest {
     @DisplayName("Установка пустого имени владельца :")
@@ -13,7 +15,7 @@ class AccountTest {
     @MethodSource("org.example.NameSource#blankNames")
     void setBlankClientName(String clientName) {
         Account acc = new Account("Vasya");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {acc.setClientName(clientName);});
+        Assertions.assertThrows(IllegalArgumentException.class, () -> acc.setClientName(clientName));
     }
 
     @Test
@@ -21,7 +23,7 @@ class AccountTest {
     void setNullClientName() {
         String str = null;
         Account acc = new Account("Vasya");
-        Assertions.assertThrows(NullPointerException.class, () -> {acc.setClientName(str);});
+        Assertions.assertThrows(NullPointerException.class, () -> acc.setClientName(str));
     }
 
     @DisplayName("Установка имени владельца :")
@@ -36,21 +38,21 @@ class AccountTest {
     @ParameterizedTest(name = "-> \"{0}\"")
     @MethodSource("org.example.NameSource#blankNames")
     void newAccoutnBlankClientName(String clientName) {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {new Account(clientName);});
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new Account(clientName));
     }
 
     @Test
     @DisplayName("Новый счет с NULL в имени владельца")
     void newAccoutnNullClientName() {
         String str = null;
-        Assertions.assertThrows(NullPointerException.class, () -> {new Account(str);});
+        Assertions.assertThrows(NullPointerException.class, () -> new Account(str));
     }
 
     @DisplayName("Новый счет с корректным именем владельца :")
     @ParameterizedTest(name = "-> \"{0}\"")
     @MethodSource("org.example.NameSource#correctNames")
     void newAccoutnCorrectClientName(String clientName) {
-        Account acc = new Account(clientName);
+        Assertions.assertDoesNotThrow(() ->new Account(clientName));
     }
 
     @org.junit.jupiter.api.Test
@@ -66,7 +68,7 @@ class AccountTest {
     void updateMoneyCorrectName(String cur) {
         Account acc = new Account("Vasya");
         acc.updateMoney(Currency.valueOf(cur),99L);
-        Assertions.assertEquals(true, acc.getMoney().containsKey(Currency.valueOf(cur)));
+        Assertions.assertTrue(acc.getMoney().containsKey(valueOf(cur)));
     }
 
     @ParameterizedTest(name = "updateMoney (BAD Names) -> \"{0}\"")
@@ -97,6 +99,59 @@ class AccountTest {
         Account acc = new Account("Vasya");
         Assertions.assertThrows(IllegalArgumentException.class, () -> acc.updateMoney(Currency.valueOf("RUB"), null));
     }
+
+    @Test
+    void undoName() {
+        Account acc = new Account("Default Name");
+        String dName = acc.getClientName();
+        acc.setClientName("Fake Name");
+
+        Assertions.assertNotEquals(dName, acc.getClientName());
+        Assertions.assertEquals(dName,acc.undo().getClientName());
+        Assertions.assertThrows(NothingToUndo.class, acc::undo);
+    }
+
+    @Test
+    void undoMoney() {
+        Account acc = new Account("Default Name");
+        acc.updateMoney(RUB,100L);
+        acc.updateMoney(EUR,200L);
+        acc.updateMoney(USD,300L);
+        Long rub = acc.getMoney().get(RUB);
+        Long eur = acc.getMoney().get(EUR);
+        Long usd = acc.getMoney().get(USD);
+
+        acc.updateMoney(RUB,110L);
+        acc.updateMoney(EUR,220L);
+        acc.updateMoney(USD,330L);
+        Assertions.assertNotEquals(rub, acc.getMoney().get(RUB));
+        Assertions.assertNotEquals(eur, acc.getMoney().get(EUR));
+        Assertions.assertNotEquals(usd, acc.getMoney().get(USD));
+
+        //откат денег :)
+        Assertions.assertDoesNotThrow(acc::undo);
+        Assertions.assertNotEquals(rub, acc.getMoney().get(RUB));
+        Assertions.assertNotEquals(eur, acc.getMoney().get(EUR));
+        Assertions.assertEquals(usd, acc.getMoney().get(USD));
+
+        Assertions.assertDoesNotThrow(acc::undo);
+        Assertions.assertDoesNotThrow(acc::undo);
+
+        //удаление денег
+        Assertions.assertDoesNotThrow(acc::undo);
+        Assertions.assertEquals(rub, acc.getMoney().get(RUB));
+        Assertions.assertEquals(eur, acc.getMoney().get(EUR));
+        Assertions.assertNull(acc.getMoney().get(USD));
+
+        Assertions.assertDoesNotThrow(acc::undo);
+        Assertions.assertDoesNotThrow(acc::undo);
+        Assertions.assertNull(acc.getMoney().get(EUR));
+        Assertions.assertNull(acc.getMoney().get(RUB));
+
+        ///Больше нечего откатывать
+        Assertions.assertThrows(NothingToUndo.class, acc::undo);
+    }
+
 }
 
 class NameSource {
