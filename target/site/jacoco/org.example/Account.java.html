@@ -11,7 +11,7 @@ public class Account implements Cloneable{
 
 <span class="fc" id="L12">    @Getter @NonNull</span>
     private String clientName;
-    private HashMap&lt;Currency, Long&gt; money;
+    private Map&lt;Currency, Long&gt; money;
 <span class="fc" id="L15">    private Deque&lt;Executable&gt; undoSteps = new ArrayDeque&lt;&gt;();</span>
 
     public Account undo(){
@@ -41,12 +41,12 @@ public class Account implements Cloneable{
     public void setClientName(String clientName) {
 <span class="fc" id="L42">        checkClientName(clientName);</span>
 <span class="fc" id="L43">        String oldName = this.clientName;</span>
-<span class="fc" id="L44">        this.undoSteps.push(() -&gt; {this.clientName = oldName;});</span>
+<span class="fc" id="L44">        this.undoSteps.push(() -&gt; this.clientName = oldName);</span>
 <span class="fc" id="L45">        this.clientName = clientName;</span>
 <span class="fc" id="L46">    }</span>
 
     public HashMap&lt;Currency, Long&gt; getMoney() {
-<span class="fc" id="L49">        return new HashMap&lt;Currency, Long&gt;(money);</span>
+<span class="fc" id="L49">        return new HashMap&lt;&gt;(money);</span>
     }
 
     private Deque&lt;Executable&gt; getUndoSteps() {
@@ -80,8 +80,8 @@ public class Account implements Cloneable{
 
     private class Snapshot implements Loadable{
 
-        private String clientName;
-        private HashMap&lt;Currency,Long&gt; money;
+        private final String clientName;
+        private final HashMap&lt;Currency,Long&gt; money;
 
 <span class="fc" id="L86">        public Snapshot (){</span>
 <span class="fc" id="L87">            this.clientName = Account.this.clientName;</span>
@@ -97,15 +97,18 @@ public class Account implements Cloneable{
     }
     @Override
     public String toString() {
-<span class="nc" id="L100">        String retval =  &quot;Account{&quot; +</span>
+<span class="nc" id="L100">        StringBuilder retval = new StringBuilder(&quot;Account{&quot; +</span>
                 &quot;clientName='&quot; + clientName + '\''
-                + &quot;, money :  \n&quot;;
+                + &quot;, money :  \n&quot;);
 <span class="nc bnc" id="L103" title="All 2 branches missed.">        for (Currency key: money.keySet()) {</span>
-<span class="nc" id="L104">            retval += &quot;\t&quot; + key.displayName + &quot; = &quot; + money.get(key).toString() + &quot;\n&quot;;</span>
-<span class="nc" id="L105">        }</span>
+<span class="nc" id="L104">            retval.append(&quot;\t&quot;)</span>
+<span class="nc" id="L105">                    .append(key.displayName + &quot; = &quot;)</span>
+<span class="nc" id="L106">                    .append(money.get(key).toString())</span>
+<span class="nc" id="L107">                    .append(&quot;\n&quot;);</span>
+<span class="nc" id="L108">        }</span>
 
-<span class="nc" id="L107">        retval += &quot;\n }&quot;;</span>
-<span class="nc" id="L108">        return retval;</span>
+<span class="nc" id="L110">        retval.append(&quot;\n }&quot;);</span>
+<span class="nc" id="L111">        return retval.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

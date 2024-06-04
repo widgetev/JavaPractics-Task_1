@@ -11,7 +11,7 @@ public class Account implements Cloneable{
 
     @Getter @NonNull
     private String clientName;
-    private HashMap<Currency, Long> money;
+    private Map<Currency, Long> money;
     private Deque<Executable> undoSteps = new ArrayDeque<>();
 
     public Account undo(){
